@@ -52,10 +52,12 @@ def get_task(task_id: int):
 def create_task(task: TaskCreate):
     if not task.title or not task.title.strip():
         raise HTTPException(status_code=400, detail="title is required and cannot be empty")
-    next_id = max((t["id"] for t in tasks), default=0) + 1
-    new_task = {"id": next_id, "title": task.title, "done": False}
-    tasks.append(new_task)
-    return new_task
+    with Session(engine) as session:
+        new_task = Task(title=task.title, done=False)
+        session.add(new_task)
+        session.commit()
+        session.refresh(new_task)
+        return new_task
 
 class TaskUpdate(BaseModel):
     title: str
