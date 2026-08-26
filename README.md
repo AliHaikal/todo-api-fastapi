@@ -57,3 +57,26 @@ Response: `404 Not Found`, `{"detail":"Task 4 not found"}`
 ## Swagger UI
 
 ![Swagger UI]      Screenshot 2026-08-22 080125.png
+
+
+
+## Database
+
+**Why SQLite?**
+I've used this befre its easy and light . Als its very fast and ssince this it not a very large project its fits it ..
+
+**Where it's stored**
+The database lives in `tasks.db`, created automatically in the 
+project root the first time you run the app.
+
+**How to run**
+pip install fastapi uvicorn sqlmodel
+uvicorn main:app --reload
+
+**Database viewer**
+
+![alt text](<Screenshot 2026-08-26 113832-1.png>)
+
+**Example query**
+
+SELECT * FROM tasks WHERE done = 1;
