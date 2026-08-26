@@ -1,16 +1,31 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-
+from sqlmodel import SQLModel, Field, create_engine, Session, select
 app = FastAPI()
+
+
 
 class TaskCreate(BaseModel):
     title: str
 
-tasks = [
-    {"id": 1, "title": "Buy milk", "done": False},
-    {"id": 2, "title": "Walk the dog", "done": True},
-    {"id": 3, "title": "Write README", "done": False},
-]
+class Task(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    title: str
+    done: bool = False
+    
+engine = create_engine("sqlite:///tasks.db")
+
+def init_db():
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        existing = session.exec(select(Task)).first()
+        if not existing:
+            session.add(Task(title="Buy milk", done=False))
+            session.add(Task(title="Walk the dog", done=True))
+            session.add(Task(title="Write README", done=False))
+            session.commit()
+
+init_db()
 
 @app.get("/")
 def root():
