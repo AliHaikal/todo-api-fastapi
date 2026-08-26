@@ -65,19 +65,25 @@ class TaskUpdate(BaseModel):
 
 @app.put("/tasks/{task_id}", summary="Update a task's title or done status")
 def update_task(task_id: int, task: TaskUpdate):
-    for t in tasks:
-        if t["id"] == task_id:
-            if not task.title or not task.title.strip():
-                raise HTTPException(status_code=400, detail="title is required and cannot be empty")
-            t["title"] = task.title
-            t["done"] = task.done
-            return t
-    raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    if not task.title or not task.title.strip():
+        raise HTTPException(status_code=400, detail="title is required and cannot be empty")
+    with Session(engine) as session:
+        existing = session.get(Task, task_id)
+        if not existing:
+            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+        existing.title = task.title
+        existing.done = task.done
+        session.add(existing)
+        session.commit()
+        session.refresh(existing)
+        return existing 
 
-@app.delete("/tasks/{task_id}", status_code=204 ,summary="Delete a task")
+@app.delete("/tasks/{task_id}", status_code=204, summary="Delete a task")
 def delete_task(task_id: int):
-    for i, t in enumerate(tasks):
-        if t["id"] == task_id:
-            tasks.pop(i)
-            return
-    raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    with Session(engine) as session:
+        existing = session.get(Task, task_id)
+        if not existing:
+            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+        session.delete(existing)
+        session.commit()
+        return
