@@ -80,3 +80,40 @@ uvicorn main:app --reload
 **Example query**
 
 SELECT * FROM tasks WHERE done = 1;
+
+## Containerization (BE-04)
+
+I used Sqllite instead of Postgres 
+Reason : there was something wrong with my machine or the system cause the Docker Desktop app was not runnin . neither the uuntu was installing , aslso in A2 i used Sql lite and i was famileire with it so yeah i used sqllite instead of Postgres with the same goals: 
+volume-backed persistence, .env-driven config, and one-command 
+startup
+so, i shifted to github codebase instead 
+
+## Repository pattern
+Routes in `main.py` never touch the database directly — they only 
+call methods on `SQLiteTaskRepository` (`get_all`, `get`, `create`, 
+`update`, `delete`), defined in `repository.py`. The database engine 
+and table definition live in `models.py`. This means swapping storage 
+implementations only requires changing `repository.py`/`models.py` — 
+`main.py` and the API behavior stay identical, which was true both 
+before and after containerizing.    
+
+### How persistence was verified
+1. Started the stack with `docker compose up --build`
+2. Created a new task via `POST /tasks`
+3. Ran `docker compose down` to fully stop and remove the container
+4. Ran `docker compose up --build` again
+5. Called `GET /tasks` and confirmed the task created in step 2 was 
+   still present
+
+This confirms data survives not just an app restart, but a full 
+container teardown and rebuild — because `tasks.db` lives in a 
+Docker volume (`./data:/app/data`) mounted from the host, not inside 
+the container's own filesystem.-
+
+
+### How to run
+
+docker compose up --build
+
+The app will be available on port 8000. `.env.example`
