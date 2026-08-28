@@ -1,4 +1,5 @@
 from sqlmodel import SQLModel, Field, create_engine, Session, select
+from dotenv import load_dotenv
 import os
 from pathlib import Path
 
